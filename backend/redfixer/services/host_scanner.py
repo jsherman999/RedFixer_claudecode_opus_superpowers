@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Tuple
 import paramiko
 
 from redfixer.config import get_settings
-from redfixer.models.schemas import FindingTypeEnum, SeverityEnum
+from redfixer.models.schemas import SeverityEnum
 
 
 @dataclass
@@ -87,7 +87,10 @@ class HostScanner:
 
         # Create SSH client
         client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # Load system host keys for security
+        client.load_system_host_keys()
+        # Use WarningPolicy instead of AutoAddPolicy for better security
+        client.set_missing_host_key_policy(paramiko.WarningPolicy())
 
         try:
             # Connect
@@ -127,7 +130,7 @@ class HostScanner:
                             current_version=installed_version,
                             expected_version=fixed_version,
                             severity=severity,
-                            fix_command=f"dnf update {package_name}-{fixed_version}",
+                            fix_command=f"dnf update {package_name}",
                         )
                     )
 
@@ -154,7 +157,7 @@ class HostScanner:
         """Parse version from rpm -q output."""
         # Format: package-version-release.arch
         # Example: httpd-2.4.51-1.el9.x86_64
-        match = re.search(r"-([\d.]+(?:-[\d.]+)?)", rpm_output)
+        match = re.search(r"-([\d.]+-[\d.]+)", rpm_output)
         return match.group(1) if match else ""
 
     def _is_version_vulnerable(self, installed: str, fixed: str) -> bool:
@@ -163,6 +166,10 @@ class HostScanner:
 
         Returns True if installed < fixed
         """
+        # TODO: This simplified version comparison may fail with epoch versions
+        # (e.g., "1:2.4.51-1" where the "1:" prefix is the epoch).
+        # A proper implementation should use RPM version comparison algorithms
+        # that handle epoch, version, and release segments correctly.
         # Simplified version comparison
         # Real implementation should use proper RPM version comparison
         installed_parts = self._version_to_tuple(installed)
