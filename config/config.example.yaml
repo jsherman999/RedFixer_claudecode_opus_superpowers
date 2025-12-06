@@ -1,0 +1,49 @@
+# config/config.example.yaml
+# RedFixer Configuration Example
+# Copy to ~/.redfixer/config.yaml or /etc/redfixer/config.yaml
+
+# API Settings
+api:
+  host: 0.0.0.0
+  port: 8000
+  api_key: "change-me-in-production"
+
+# SSH Settings
+ssh:
+  user: root
+  key_path: ~/.ssh/id_rsa
+  timeout: 30
+
+# Red Hat API (optional, for higher rate limits)
+redhat:
+  username: null
+  password: null
+
+# LLM Configuration
+llm:
+  provider: ollama  # ollama | uai_studio | openai | anthropic
+
+  ollama:
+    endpoint: http://localhost:11434
+    model: llama3.1:8b
+
+  uai_studio:
+    endpoint: https://uai-studio.yourcompany.com/v1
+    api_key: null
+    model: gpt-4
+
+  openai:
+    api_key: null
+    model: gpt-4-turbo
+
+  anthropic:
+    api_key: null
+    model: claude-sonnet-4-20250514
+
+# Database
+database:
+  path: ~/.redfixer/redfixer.db
+
+# Cache
+cache:
+  vuln_ttl_hours: 24
