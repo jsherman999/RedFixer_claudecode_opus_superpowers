@@ -1,9 +1,14 @@
 """Configuration management using Pydantic Settings."""
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional, Tuple, Type
 
+import yaml
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 
 class APISettings(BaseSettings):
@@ -70,6 +75,51 @@ class CacheSettings(BaseSettings):
     vuln_ttl_hours: int = 24
 
 
+class YamlConfigSettingsSource(PydanticBaseSettingsSource):
+    """Custom settings source for loading YAML configuration files."""
+
+    def get_field_value(
+        self, field_name: str, field_info: Any
+    ) -> Tuple[Any, str, bool]:
+        """Not used for this source."""
+        return None, field_name, False
+
+    def __call__(self) -> dict[str, Any]:
+        """Load settings from YAML configuration files."""
+        # Define config file paths in priority order
+        config_paths = [
+            Path.home() / ".redfixer" / "config.yaml",
+            Path("/etc/redfixer/config.yaml"),
+        ]
+
+        # Try to load from each path
+        for config_path in config_paths:
+            if config_path.exists():
+                try:
+                    with open(config_path, "r") as f:
+                        data = yaml.safe_load(f)
+                        if data is None:
+                            continue
+                        # Expand ~ in paths
+                        if isinstance(data, dict):
+                            self._expand_paths(data)
+                        return data
+                except Exception:
+                    # Continue to next path if loading fails
+                    continue
+
+        # Return empty dict if no config file found
+        return {}
+
+    def _expand_paths(self, data: dict[str, Any]) -> None:
+        """Recursively expand ~ in path strings."""
+        for key, value in data.items():
+            if isinstance(value, str) and value.startswith("~"):
+                data[key] = str(Path(value).expanduser())
+            elif isinstance(value, dict):
+                self._expand_paths(value)
+
+
 class Settings(BaseSettings):
     """Main application settings."""
     model_config = SettingsConfigDict(
@@ -84,6 +134,30 @@ class Settings(BaseSettings):
     llm: LLMSettings = Field(default_factory=LLMSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     cache: CacheSettings = Field(default_factory=CacheSettings)
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        """Customize settings sources to include YAML config file loading.
+
+        Priority order:
+        1. init_settings (arguments passed to Settings())
+        2. env_settings (environment variables)
+        3. YamlConfigSettingsSource (YAML config files)
+        4. file_secret_settings (secrets from files)
+        """
+        return (
+            init_settings,
+            env_settings,
+            YamlConfigSettingsSource(settings_cls),
+            file_secret_settings,
+        )
 
 
 def get_settings() -> Settings:
