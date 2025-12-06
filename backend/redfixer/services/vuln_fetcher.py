@@ -61,9 +61,18 @@ class VulnFetcher:
         if self.settings.redhat.username and self.settings.redhat.password:
             auth = (self.settings.redhat.username, self.settings.redhat.password)
 
-        response = await self.client.get(url, auth=auth)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = await self.client.get(url, auth=auth)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            raise ValueError(
+                f"Failed to fetch RHSA {rhsa_id}: HTTP {e.response.status_code}"
+            ) from e
+        except httpx.RequestError as e:
+            raise ValueError(
+                f"Failed to fetch RHSA {rhsa_id}: {str(e)}"
+            ) from e
 
     async def _fetch_cve(self, cve_id: str) -> Dict[str, Any]:
         """Fetch CVE data from Red Hat API."""
@@ -73,9 +82,18 @@ class VulnFetcher:
         if self.settings.redhat.username and self.settings.redhat.password:
             auth = (self.settings.redhat.username, self.settings.redhat.password)
 
-        response = await self.client.get(url, auth=auth)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = await self.client.get(url, auth=auth)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            raise ValueError(
+                f"Failed to fetch CVE {cve_id}: HTTP {e.response.status_code}"
+            ) from e
+        except httpx.RequestError as e:
+            raise ValueError(
+                f"Failed to fetch CVE {cve_id}: {str(e)}"
+            ) from e
 
     def _parse_vulnerability_data(self, vuln_id: str, data: Dict[str, Any]) -> VulnLookupResponse:
         """Parse Red Hat API response into VulnLookupResponse."""
