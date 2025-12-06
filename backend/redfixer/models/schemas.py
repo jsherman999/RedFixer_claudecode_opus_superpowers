@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ScanStatusEnum(str, Enum):
@@ -66,8 +66,7 @@ class FindingResponse(BaseModel):
     fix_command: str
     details: Optional[Dict[str, Any]] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class HostResponse(BaseModel):
@@ -79,8 +78,7 @@ class HostResponse(BaseModel):
     scanned_at: Optional[datetime] = None
     findings: List[FindingResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScanResponse(BaseModel):
@@ -94,8 +92,7 @@ class ScanResponse(BaseModel):
     completed_at: Optional[datetime] = None
     hosts: List[HostResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScanListItem(BaseModel):
@@ -110,8 +107,7 @@ class ScanListItem(BaseModel):
     host_count: int
     affected_count: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VulnLookupResponse(BaseModel):
