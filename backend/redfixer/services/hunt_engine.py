@@ -1,8 +1,11 @@
 """HuntEngine service for orchestrating vulnerability scanning and LLM-powered artifact hunting."""
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from redfixer.llm.base import BaseLLM
 from redfixer.models.database import (
@@ -98,14 +101,17 @@ class HuntEngine:
 
             # Step 3: Mark scan as completed
             scan.status = ScanStatus.COMPLETED
-            scan.completed_at = datetime.utcnow()
+            scan.completed_at = datetime.now(timezone.utc)
             self.db.commit()
 
         except Exception as e:
             # Mark scan as failed
-            scan.status = ScanStatus.FAILED
-            scan.completed_at = datetime.utcnow()
-            self.db.commit()
+            try:
+                scan.status = ScanStatus.FAILED
+                scan.completed_at = datetime.now(timezone.utc)
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             raise
 
     async def _scan_single_host(
@@ -151,7 +157,7 @@ class HuntEngine:
             else:
                 scan_host.status = HostStatus.CLEAN
 
-            scan_host.scanned_at = datetime.utcnow()
+            scan_host.scanned_at = datetime.now(timezone.utc)
             self.db.commit()
 
             # Store package findings
@@ -168,10 +174,13 @@ class HuntEngine:
 
         except Exception as e:
             # Update host with error
-            scan_host.status = HostStatus.ERROR
-            scan_host.error_message = str(e)
-            scan_host.scanned_at = datetime.utcnow()
-            self.db.commit()
+            try:
+                scan_host.status = HostStatus.ERROR
+                scan_host.error_message = str(e)
+                scan_host.scanned_at = datetime.now(timezone.utc)
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
             # Don't re-raise - continue with other hosts
 
     def _store_package_finding(self, scan_host: ScanHost, finding) -> None:
@@ -259,7 +268,7 @@ Provide specific commands to run and what to look for."""
                     "llm_analysis": llm_response.content,
                     "confidence": llm_response.confidence,
                     "vuln_id": vuln_data.vuln_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
             self.db.add(scan_finding)
@@ -267,5 +276,4 @@ Provide specific commands to run and what to look for."""
 
         except Exception as e:
             # Log error but don't fail the scan
-            # In a production system, you'd log this properly
-            pass
+            logger.error(f"LLM hunt failed for {scan_host.id}: {str(e)}", exc_info=True)
