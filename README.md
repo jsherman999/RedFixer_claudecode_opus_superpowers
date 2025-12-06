@@ -274,7 +274,7 @@ pytest --cov=redfixer          # With coverage report
 
 ## Implementation Status
 
-### ✅ Completed (9/18 tasks - 50%)
+### ✅ Completed (12/18 tasks - 67%)
 
 **Phase 1: Foundation** ✅
 - ✅ Backend structure (pyproject.toml, config.py)
@@ -292,15 +292,17 @@ pytest --cov=redfixer          # With coverage report
 - ✅ LLM factory + stub providers (OpenAI, Anthropic, UAI Studio)
 - ✅ HuntEngine service (complete orchestration)
 
-**Phase 5: FastAPI Routes** 🚧 (1/5 tasks)
+**Phase 5: FastAPI Routes** ✅
 - ✅ API dependencies and middleware
+- ✅ Vulnerability routes (CVE/RHSA lookup)
+- ✅ Scan routes (create, start, list, get, delete)
+- ✅ Host routes (list hosts, get host history)
+- ✅ Report routes (JSON, CSV, HTML formats)
+- ✅ Health routes (health check, readiness, info)
 
-### 🚧 In Progress / TODO (9/18 tasks remaining)
+### 🚧 In Progress / TODO (6/18 tasks remaining)
 
-**Phase 5: FastAPI Routes** (4 tasks remaining)
-- ⏳ Vulnerability routes (lookup CVE/RHSA data)
-- ⏳ Scan routes (create, start, get results)
-- ⏳ Additional routes (hosts, reports, health check)
+**Phase 5: FastAPI Routes** (1 task remaining)
 - ⏳ Main FastAPI application
 
 **Phase 6: CLI** (2 tasks)
@@ -315,10 +317,11 @@ pytest --cov=redfixer          # With coverage report
 - ⏳ Containerfile and deployment scripts
 
 ### Test Coverage
-- **Total Tests**: 47 passing, 1 skipped
+- **Total Tests**: 103 passing, 1 skipped
 - **Core Services**: 100% coverage
 - **LLM Integration**: 100% coverage
 - **Database Models**: 100% coverage
+- **API Routes**: 100% coverage (vulnerabilities, scans, hosts, reports, health)
 
 ## Roadmap
 
