@@ -10,7 +10,7 @@ from redfixer.models.database import Base
 settings = get_settings()
 
 # Ensure database directory exists
-db_path = Path(settings.database.path)
+db_path = Path(settings.database.db_path)
 db_path.parent.mkdir(parents=True, exist_ok=True)
 
 # Create engine

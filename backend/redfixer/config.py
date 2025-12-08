@@ -67,7 +67,7 @@ class LLMSettings(BaseSettings):
 
 class DatabaseSettings(BaseSettings):
     """Database settings."""
-    path: Path = Path.home() / ".redfixer" / "redfixer.db"
+    db_path: Path = Path.home() / ".redfixer" / "redfixer.db"
 
 
 class CacheSettings(BaseSettings):
