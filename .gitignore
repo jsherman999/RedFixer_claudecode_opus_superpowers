@@ -1,0 +1,20 @@
+# Configuration files with sensitive data
+config.yaml
+config.yaml.bak
+
+# Podman/Docker
+.containerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
