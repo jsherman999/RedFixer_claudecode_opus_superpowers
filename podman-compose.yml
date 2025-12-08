@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+    container_name: redfixer-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - redfixer-data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - REDFIXER_CONFIG=/app/config.yaml
+      - REDFIXER_DATABASE__DB_PATH=/app/data/redfixer.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - redfixer-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+    container_name: redfixer-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - redfixer-network
+
+volumes:
+  redfixer-data:
+    driver: local
+
+networks:
+  redfixer-network:
+    driver: bridge

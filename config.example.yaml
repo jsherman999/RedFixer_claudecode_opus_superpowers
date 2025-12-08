@@ -1,0 +1,34 @@
+# RedFixer Configuration Example
+# Copy this to config.yaml and customize for your environment
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  # CHANGE THIS: Generate with: openssl rand -hex 32
+  api_key: "change-me-in-production"
+  debug: false
+
+database:
+  # Path to SQLite database file
+  db_path: "/app/data/redfixer.db"
+
+scanner:
+  # Nmap configuration
+  nmap:
+    enabled: true
+    binary_path: "/usr/bin/nmap"
+    default_args: "-sV -sC"
+
+  # Nuclei configuration
+  nuclei:
+    enabled: true
+    binary_path: "/usr/bin/nuclei"
+    template_path: "/opt/nuclei-templates"
+
+  # OpenVAS configuration (optional)
+  openvas:
+    enabled: false
+    host: "localhost"
+    port: 9390
+    username: "admin"
+    password: "change-me"
