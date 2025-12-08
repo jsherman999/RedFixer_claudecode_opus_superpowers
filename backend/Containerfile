@@ -11,20 +11,15 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Copy requirements first for better layer caching
-COPY requirements.txt .
+# Copy project metadata for dependency installation
+COPY pyproject.toml README.md ./
 
-# Install dependencies
+# Install dependencies from pyproject.toml
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -e .
 
 # Copy application code
 COPY redfixer/ ./redfixer/
-COPY pyproject.toml .
-COPY README.md .
-
-# Install the package
-RUN pip install -e .
 
 # Create directory for database and ensure permissions
 RUN mkdir -p /app/data && \
